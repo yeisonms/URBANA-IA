@@ -4,77 +4,108 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 
-# Load environment variables
+# Cargar variables de entorno
 load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize Groq client
+# Inicializar cliente de Groq
 client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
 @app.route('/', methods=['GET'])
 def index():
-    # Define genres in Spanish
-    actividades = [
-('sedentario', 'Sedentario (Poco o ningún ejercicio)'),
-('poco_activo', 'Poco Activo (1-3 días/semana)'),
-('moderadamente_activo', 'Moderadamente Activo (3-5 días/semana)'),
-('muy_activo', 'Muy Activo (6-7 días/semana)'),
-('super_activo', 'Super Activo (Atleta profesional/2xentrenamientos)')
-]
-    return render_template('index.html', actividades=actividades)
+    # Definir las categorías de necesidades para el formulario
+    categorias = [
+        ('espacios_verdes', 'Espacios Verdes'),
+        ('infraestructura', 'Infraestructura'),
+        ('accesibilidad', 'Accesibilidad'),
+        ('servicios_publicos', 'Servicios Públicos'),
+        ('seguridad', 'Seguridad'),
+        ('salud_ambiental', 'Salud Ambiental'),
+        ('movilidad', 'Movilidad'),
+        ('energia', 'Energía'),
+        ('otro', 'Otro')
+    ]
+    return render_template('index.html', categorias=categorias)
 
-@app.route('/recommend', methods=['POST'])
-def recommend():
-    # Get form data
-    actividad = request.form.get('actividad')
-    edad = request.form.get('edad')
-    comida = request.form.get('comida')
-    alergia = request.form.get('alergia')
-
-  
-
-    # Construct prompt in Spanish
-    prompt = f"""Como nutricionista profesional, crea un plan de nutrición personalizado para alguien con el siguiente perfil:
-Edad: {edad} años
-Nivel de Actividad: {actividad} 
-Comidas Favoritas: {comida}
-Restricciones Dietéticas/Alergias: {alergia}
-Por favor, proporciona:
-1. Estimación de necesidades calóricas diarias
-2. Distribución recomendada de macronutrientes
-3. Un plan de comidas diario de ejemplo incorporando sus comidas favoritas
-cuando sea posible
-4. Consideraciones nutricionales específicas para su grupo de edad
-5. Recomendaciones basadas en su nivel de actividad
-6. Alternativas seguras para cualquier alimento restringido
-7. 2-3 sugerencias de snacks saludables
-Formatea la respuesta claramente con encabezados y puntos para facilitar la
-lectura.
-Ten en cuenta la salud y la seguridad, especialmente con respecto a las
-restricciones mencionadas."""
-
-    print("Prompt que vamos a enviar a Groq:")
-    print("-----------------------------")
-    print(prompt)
-    print("-----------------------------")
-
+@app.route('/submit_petition', methods=['POST'])
+def submit_petition():
     try:
+        # Recoger datos del formulario
+        nombre = request.form.get('nombre', 'No especificado')
+        edad = request.form.get('edad', 'No especificado')
+        genero = request.form.get('genero', 'No especificado')
+        email = request.form.get('email', 'No especificado')
+        telefono = request.form.get('telefono', 'No especificado')
+        
+        direccion = request.form.get('direccion')
+        categoria = request.form.get('categoria')
+        prioridad = request.form.get('prioridad')
+        descripcion = request.form.get('descripcion')
+        propuesta = request.form.get('propuesta', 'Ninguna')
+        
+        motivacion = request.form.get('motivacion')
+        afectados = request.form.get('afectados')
+
+        # Construir el prompt para el modelo de IA
+        prompt = f"""
+        Como un analista de urbanismo y planificador de IA, procesa la siguiente petición ciudadana y genera un resumen estructurado para su análisis.
+
+        **Datos del Solicitante:**
+        - Nombre: {nombre}
+        - Rango de Edad: {edad}
+        - Género: {genero}
+        - Contacto: Correo - {email}, Teléfono - {telefono}
+
+        **Ubicación:**
+        - Dirección/Barrio: {direccion}
+
+        **Detalles de la Petición:**
+        - Categoría: {categoria}
+        - Prioridad Ciudadana: {prioridad}
+        - Descripción del Problema: "{descripcion}"
+        - Propuesta Ciudadana: "{propuesta}"
+
+        **Contexto y Justificación:**
+        - Motivación: "{motivacion}"
+        - Grupos Afectados: {afectados}
+
+        **Tarea a realizar:**
+        1.  **Resumen Ejecutivo:** Crea un resumen conciso (2-3 frases) de la petición.
+        2.  **Análisis de Viabilidad (Preliminar):** Basado en la descripción, evalúa de forma preliminar si la propuesta es clara y potencialmente realizable.
+        3.  **Identificación de Palabras Clave:** Extrae 5-7 palabras clave relevantes para la clasificación y búsqueda (ej: 'parque', 'iluminación', 'rampa', 'transporte público').
+        4.  **Sugerencia de Próximo Paso:** Recomienda una acción inmediata para el equipo de planificación urbana (ej: 'Verificar la ubicación con datos geoespaciales', 'Correlacionar con otras peticiones similares en la zona', 'Consultar el plan de ordenamiento territorial vigente').
+
+        Formatea la respuesta de manera clara y profesional.
+        """
+
+        print("Prompt enviado a Groq:")
+        print("-----------------------------")
+        print(prompt)
+        print("-----------------------------")
+
+        # Llamada al API de Groq
         completion = client.chat.completions.create(
             messages=[
+                {
+                    "role": "system",
+                    "content": "Eres un asistente experto en análisis de datos urbanos."
+                },
                 {
                     "role": "user",
                     "content": prompt
                 }
             ],
-            model="deepseek-r1-distill-llama-70b",
-            temperature=0.6,
-            max_tokens=4096,
+            model="llama-3.3-70b-versatile", # Puedes ajustar el modelo según tu preferencia
+            temperature=0.7,
+            max_tokens=2048,
         )
         
-        recommendation = completion.choices[0].message.content
-        return jsonify({'success': True, 'recommendation': recommendation})
+        analysis_result = completion.choices[0].message.content
+        return jsonify({'success': True, 'message': analysis_result})
+
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == '__main__':
