@@ -1,288 +1,448 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta Ciudadana para el Urbanismo Participativo</title>
+    <title>Smart Planning Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-            color: #333;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
         }
-
-        .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-            font-weight: 600;
-        }
-
-        fieldset {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 25px;
-        }
-
-        legend {
-            padding: 0 10px;
-            font-weight: bold;
-            color: #3498db;
-            font-size: 1.1em;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group.inline {
-            display: flex;
-            gap: 20px;
-        }
-
-        .form-group.inline > div {
-            flex: 1;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="tel"],
-        input[type="number"],
-        select,
-        textarea {
+        .chart-container {
+            position: relative;
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
         }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: #3498db;
-            outline: none;
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
         }
-
-        textarea {
-            height: 120px;
-            resize: vertical;
+        .step-active {
+            border-color: #2563eb;
+            background-color: #eff6ff;
         }
-
-        button {
-            background-color: #3498db;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .privacy-consent {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .privacy-consent input {
-            margin-top: 5px;
-        }
-
-        #result {
-            margin-top: 30px;
-            padding: 20px;
-            border-left: 5px solid #3498db;
-            background-color: #eaf5fb;
-            display: none;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .loading {
-            text-align: center;
-            margin-top: 20px;
-            display: none;
-            color: #555;
+        .step-active h3 {
+            color: #1d4ed8;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>Formulario de Petición Ciudadana</h1>
-        <form id="peticionForm">
-            
-            <fieldset>
-                <legend>1. Identificación Básica</legend>
-                <div class="form-group">
-                    <label for="nombre">Nombre completo (Opcional)</label>
-                    <input type="text" id="nombre" name="nombre">
-                </div>
-                <div class="form-group inline">
-                    <div>
-                        <label for="edad">Rango de Edad</label>
-                        <select id="edad" name="edad" required>
-                            <option value="">Selecciona un rango</option>
-                            <option value="0-17">Menor de 18</option>
-                            <option value="18-29">18-29 años</option>
-                            <option value="30-45">30-45 años</option>
-                            <option value="46-60">46-60 años</option>
-                            <option value="60+">Más de 60</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="genero">Género (Opcional)</label>
-                        <select id="genero" name="genero">
-                            <option value="">Prefiero no decir</option>
-                            <option value="masculino">Masculino</option>
-                            <option value="femenino">Femenino</option>
-                            <option value="otro">Otro</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group inline">
-                    <div>
-                        <label for="email">Correo electrónico (Opcional)</label>
-                        <input type="email" id="email" name="email">
-                    </div>
-                    <div>
-                        <label for="telefono">Teléfono (Opcional)</label>
-                        <input type="tel" id="telefono" name="telefono">
-                    </div>
-                </div>
-            </fieldset>
+<body class="text-gray-800">
 
-            <fieldset>
-                <legend>2. Ubicación Geográfica</legend>
-                <div class="form-group">
-                    <label for="direccion">Dirección, barrio o zona</label>
-                    <input type="text" id="direccion" name="direccion" required placeholder="Ej: Calle Falsa 123, Barrio Primavera">
+    <nav class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="text-xl font-bold text-blue-600">Smart Planning Assistant</div>
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="#concepto" class="text-gray-600 hover:text-blue-600 transition-colors">Concepto</a>
+                    <a href="#ia" class="text-gray-600 hover:text-blue-600 transition-colors">Tecnología IA</a>
+                    <a href="#flujo" class="text-gray-600 hover:text-blue-600 transition-colors">Flujo de Trabajo</a>
+                    <a href="#participacion" class="text-gray-600 hover:text-blue-600 transition-colors">Participa</a>
+                    <a href="#beneficios" class="text-gray-600 hover:text-blue-600 transition-colors">Beneficios</a>
                 </div>
-                </fieldset>
+            </div>
+        </div>
+    </nav>
 
-            <fieldset>
-                <legend>3. Detalles de la Petición</legend>
-                <div class="form-group inline">
-                    <div>
-                        <label for="categoria">Categoría de la necesidad</label>
-                        <select id="categoria" name="categoria" required>
-                            <option value="">Selecciona una categoría</option>
-                            {% for valor, texto in categorias %}
-                            <option value="{{ valor }}">{{ texto }}</option>
-                            {% endfor %}
-                        </select>
+    <main>
+        <section id="hero" class="bg-white py-20 md:py-28">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-teal-500">
+                    Smart Planning Assistant
+                </h1>
+                <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                    Un sistema de IA para recomendaciones de planificación urbana sostenible, impulsado por datos de la NASA.
+                </p>
+            </div>
+        </section>
+
+        <section id="concepto" class="py-16 md:py-24">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Concepto Principal</h2>
+                    <p class="mt-2 text-gray-500 max-w-2xl mx-auto">Nuestro sistema funciona como un asistente inteligente para planificadores urbanos, analizando patrones de desarrollo con datos satelitales para generar recomendaciones personalizadas y sostenibles.</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-8 text-center">
+                    <div class="bg-white p-8 rounded-xl shadow-lg transition-transform transform hover:-translate-y-2">
+                        <div class="text-4xl mb-4 text-blue-500">🛰️</div>
+                        <h3 class="text-xl font-bold mb-2">Análisis de Datos</h3>
+                        <p class="text-gray-600">Utiliza datos satelitales de la NASA para analizar patrones históricos y actuales de desarrollo urbano.</p>
                     </div>
-                    <div>
-                        <label for="prioridad">Prioridad</label>
-                        <select id="prioridad" name="prioridad" required>
-                            <option value="baja">Baja</option>
-                            <option value="media">Media</option>
-                            <option value="alta">Alta</option>
-                        </select>
+                    <div class="bg-white p-8 rounded-xl shadow-lg transition-transform transform hover:-translate-y-2">
+                        <div class="text-4xl mb-4 text-teal-500">🧠</div>
+                        <h3 class="text-xl font-bold mb-2">Recomendaciones IA</h3>
+                        <p class="text-gray-600">Genera insights y recomendaciones basadas en datos para apoyar decisiones críticas de desarrollo.</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-xl shadow-lg transition-transform transform hover:-translate-y-2">
+                        <div class="text-4xl mb-4 text-indigo-500">📈</div>
+                        <h3 class="text-xl font-bold mb-2">Crecimiento Sostenible</h3>
+                        <p class="text-gray-600">Promueve un crecimiento urbano que equilibra el desarrollo económico, la sostenibilidad y la equidad social.</p>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="descripcion">Describe la necesidad o problema</label>
-                    <textarea id="descripcion" name="descripcion" required></textarea>
-                </div>
-                 <div class="form-group">
-                    <label for="propuesta">Tu propuesta o sugerencia para mejorar</label>
-                    <textarea id="propuesta" name="propuesta"></textarea>
-                </div>
-            </fieldset>
+            </div>
+        </section>
 
-            <fieldset>
-                <legend>4. Motivación e Impacto</legend>
-                <div class="form-group">
-                    <label for="motivacion">¿Por qué es relevante esta petición para tu comunidad?</label>
-                    <textarea id="motivacion" name="motivacion" required></textarea>
+        <section id="ia" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Capacidades de IA Avanzadas</h2>
+                    <p class="mt-2 text-gray-500 max-w-2xl mx-auto">El núcleo de nuestro asistente es un conjunto de algoritmos de inteligencia artificial diseñados para abordar los complejos desafíos de la planificación urbana moderna. Explore cada capacidad para entender su función.</p>
                 </div>
-                <div class="form-group">
-                    <label for="afectados">¿Quiénes son las personas o grupos más afectados?</label>
-                    <input type="text" id="afectados" name="afectados" required>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="ai-card p-6 border border-gray-200 rounded-lg cursor-pointer hover:shadow-xl hover:border-blue-500 transition-all" data-id="1">
+                        <h3 class="font-bold text-lg mb-2">Aprendizaje Predictivo</h3>
+                        <p class="text-gray-600 text-sm">Análisis de tendencias de crecimiento urbano.</p>
+                    </div>
+                    <div class="ai-card p-6 border border-gray-200 rounded-lg cursor-pointer hover:shadow-xl hover:border-blue-500 transition-all" data-id="2">
+                        <h3 class="font-bold text-lg mb-2">Optimización Multi-objetivo</h3>
+                        <p class="text-gray-600 text-sm">Balance entre economía, ambiente y sociedad.</p>
+                    </div>
+                    <div class="ai-card p-6 border border-gray-200 rounded-lg cursor-pointer hover:shadow-xl hover:border-blue-500 transition-all" data-id="3">
+                        <h3 class="font-bold text-lg mb-2">Detección de Anomalías</h3>
+                        <p class="text-gray-600 text-sm">Identificación temprana de problemas ambientales.</p>
+                    </div>
+                    <div class="ai-card p-6 border border-gray-200 rounded-lg cursor-pointer hover:shadow-xl hover:border-blue-500 transition-all" data-id="4">
+                        <h3 class="font-bold text-lg mb-2">Generación de Escenarios</h3>
+                        <p class="text-gray-600 text-sm">Creación y evaluación de futuros desarrollos.</p>
+                    </div>
                 </div>
-            </fieldset>
-            
-            <fieldset>
-                <legend>5. Evidencia</legend>
-                <div class="form-group">
-                    <label for="adjunto">Adjuntar foto(s) o archivo(s) (Opcional)</label>
-                    <input type="file" id="adjunto" name="adjunto" multiple>
+                <div id="ai-details" class="mt-8 bg-blue-50 p-8 rounded-lg min-h-[150px] flex items-center justify-center transition-opacity duration-500 opacity-0">
+                    <p class="text-center text-gray-500">Haz clic en una capacidad para ver los detalles.</p>
                 </div>
-            </fieldset>
+            </div>
+        </section>
+        
+        <section id="digital-twin" class="py-16 md:py-24">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">El Digital Twin Urbano</h2>
+                    <p class="mt-2 text-gray-500 max-w-2xl mx-auto">Para simular la expansión urbana, construimos un "Digital Twin" o gemelo digital: una réplica virtual y dinámica de la ciudad. Este modelo integra múltiples fuentes de datos para probar escenarios antes de implementarlos en el mundo real.</p>
+                </div>
+                <div class="max-w-4xl mx-auto">
+                    <div class="relative p-8 border-2 border-dashed border-gray-300 rounded-xl">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center bg-white p-4 rounded-full shadow-lg z-10">
+                                <p class="font-bold text-xl text-blue-600">Digital Twin</p>
+                                <p class="text-sm text-gray-500">Modelo 3D Integrado</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                            <div class="text-center p-4 bg-white/70 rounded-lg backdrop-blur-sm">
+                                <h4 class="font-semibold text-teal-600">Datos Satelitales</h4>
+                                <p class="text-sm text-gray-600">Uso de suelo, calor urbano, zonas verdes (Landsat, MODIS).</p>
+                            </div>
+                            <div class="text-center p-4 bg-white/70 rounded-lg backdrop-blur-sm">
+                                <h4 class="font-semibold text-indigo-600">Datos Urbanos</h4>
+                                <p class="text-sm text-gray-600">Demografía, catastro, normativa (SEDAC, Censo).</p>
+                            </div>
+                            <div class="text-center p-4 bg-white/70 rounded-lg backdrop-blur-sm">
+                                <h4 class="font-semibold text-amber-600">Datos en Tiempo Real</h4>
+                                <p class="text-sm text-gray-600">Movilidad, calidad del aire, ruido (Sensores IoT).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="simulacion" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Simulación de Escenarios</h2>
+                    <p class="mt-2 text-gray-500 max-w-2xl mx-auto">La IA utiliza el Digital Twin para generar y evaluar escenarios "what if". Esto permite a los planificadores visualizar el impacto de diferentes políticas. Selecciona un escenario para ver cómo cambian los indicadores clave.</p>
+                </div>
+                <div class="max-w-md mx-auto mb-8">
+                    <label for="scenario-selector" class="block text-sm font-medium text-gray-700 mb-2">Seleccionar Escenario:</label>
+                    <select id="scenario-selector" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="base">Escenario Base (Crecimiento Actual)</option>
+                        <option value="sostenible">Escenario Sostenible</option>
+                        <option value="compacto">Escenario Ciudad Compacta</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scenarioChart"></canvas>
+                </div>
+            </div>
+        </section>
 
-            <fieldset>
-                <legend>6. Consentimiento y Privacidad</legend>
-                <div class="form-group privacy-consent">
-                    <input type="checkbox" id="consentimiento" name="consentimiento" required>
-                    <label for="consentimiento">Autorizo el uso de esta información para fines de consulta y planificación urbana, de acuerdo con el aviso de privacidad y protección de datos.</label>
+        <section id="participacion" class="py-16 md:py-24">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Participación Ciudadana</h2>
+                    <p class="mt-2 text-gray-500 max-w-2xl mx-auto">Tu voz es fundamental. Utiliza este formulario para enviar tus peticiones, necesidades y sugerencias para mejorar nuestra comunidad. Cada aporte es analizado por nuestra IA para identificar patrones y prioridades.</p>
                 </div>
-            </fieldset>
+                <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                    <form id="peticionForm">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">Nombre completo (Opcional)</label>
+                                <input type="text" id="nombre" name="nombre" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label for="edad" class="block text-sm font-medium text-gray-700 mb-1">Rango de Edad *</label>
+                                <select id="edad" name="edad" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">Selecciona un rango</option>
+                                    <option value="0-17">Menor de 18</option>
+                                    <option value="18-29">18-29 años</option>
+                                    <option value="30-45">30-45 años</option>
+                                    <option value="46-60">46-60 años</option>
+                                    <option value="60+">Más de 60</option>
+                                </select>
+                            </div>
+                        </div>
 
-            <button type="submit">Enviar Petición</button>
-        </form>
+                        <div class="mb-6">
+                            <label for="direccion" class="block text-sm font-medium text-gray-700 mb-1">Dirección, barrio o zona *</label>
+                            <input type="text" id="direccion" name="direccion" required placeholder="Ej: Calle Falsa 123, Barrio Primavera" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
 
-        <div class="loading">Procesando tu petición...</div>
-        <div id="result"></div>
-    </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label for="categoria" class="block text-sm font-medium text-gray-700 mb-1">Categoría de la necesidad *</label>
+                                <select id="categoria" name="categoria" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                     <option value="">Selecciona una categoría</option>
+                                     {% for valor, texto in categorias %}
+                                     <option value="{{ valor }}">{{ texto }}</option>
+                                     {% endfor %}
+                                </select>
+                            </div>
+                             <div>
+                                <label for="prioridad" class="block text-sm font-medium text-gray-700 mb-1">Prioridad *</label>
+                                <select id="prioridad" name="prioridad" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="baja">Baja</option>
+                                    <option value="media" selected>Media</option>
+                                    <option value="alta">Alta</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="descripcion" class="block text-sm font-medium text-gray-700 mb-1">Describe la necesidad o problema *</label>
+                            <textarea id="descripcion" name="descripcion" required rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+                        
+                        <div class="mb-6">
+                             <label for="motivacion" class="block text-sm font-medium text-gray-700 mb-1">¿Por qué es relevante esta petición para tu comunidad? *</label>
+                             <textarea id="motivacion" name="motivacion" required rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                        </div>
+                        
+                        <div class="mb-8">
+                             <label for="afectados" class="block text-sm font-medium text-gray-700 mb-1">¿Quiénes son las personas o grupos más afectados? *</label>
+                             <input type="text" id="afectados" name="afectados" required class="w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex items-start">
+                                <div class="flex items-center h-5">
+                                     <input id="consentimiento" name="consentimiento" type="checkbox" required class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                     <label for="consentimiento" class="font-medium text-gray-700">Autorizo el uso de esta información para fines de consulta y planificación urbana.</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            Enviar Petición
+                        </button>
+                    </form>
+                    <div id="loading" class="text-center mt-4" style="display: none;">Procesando...</div>
+                    <div id="result" class="mt-6 p-4 rounded-md" style="display: none;"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="flujo" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Flujo de Implementación</h2>
+                    <p class="mt-2 text-gray-500 max-w-2xl mx-auto">Nuestro proceso integra datos, modelado, simulación y participación ciudadana en un ciclo de mejora continua. Haz clic en cada etapa para conocer los detalles.</p>
+                </div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 md:space-x-4 mb-8">
+                    <div class="w-full md:w-auto workflow-step p-4 border-l-4 border-gray-200 cursor-pointer" data-step="1">
+                        <h3 class="font-bold text-gray-500">1. Captura Satelital</h3>
+                    </div>
+                    <div class="hidden md:block text-gray-300 text-2xl">→</div>
+                    <div class="w-full md:w-auto workflow-step p-4 border-l-4 border-gray-200 cursor-pointer" data-step="2">
+                        <h3 class="font-bold text-gray-500">2. Modelado Digital Twin</h3>
+                    </div>
+                    <div class="hidden md:block text-gray-300 text-2xl">→</div>
+                    <div class="w-full md:w-auto workflow-step p-4 border-l-4 border-gray-200 cursor-pointer" data-step="3">
+                        <h3 class="font-bold text-gray-500">3. Simulación con IA</h3>
+                    </div>
+                    <div class="hidden md:block text-gray-300 text-2xl">→</div>
+                    <div class="w-full md:w-auto workflow-step p-4 border-l-4 border-gray-200 cursor-pointer" data-step="4">
+                        <h3 class="font-bold text-gray-500">4. Visualización</h3>
+                    </div>
+                    <div class="hidden md:block text-gray-300 text-2xl">→</div>
+                    <div class="w-full md:w-auto workflow-step p-4 border-l-4 border-gray-200 cursor-pointer" data-step="5">
+                        <h3 class="font-bold text-gray-500">5. Iteración</h3>
+                    </div>
+                </div>
+                <div id="workflow-details" class="mt-8 bg-white p-6 rounded-lg shadow-md min-h-[180px]">
+                    <p class="text-center text-gray-500">Selecciona una etapa del flujo para ver su descripción.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="beneficios" class="py-16 md:py-24">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800">Beneficios de la Integración</h2>
+                    <p class="mt-2 text-gray-500 max-w-2xl mx-auto">La sinergia entre el Digital Twin, los datos de la NASA y la IA transforma la planificación urbana, permitiendo que las ciudades evolucionen de forma más resiliente, inclusiva y sostenible.</p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">🎯</div>
+                        <h4 class="font-bold mb-1">Predicciones Precisas</h4>
+                        <p class="text-sm text-gray-600">Anticipa necesidades de servicios, impactos ambientales y riesgos antes de que ocurran.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">⚙️</div>
+                        <h4 class="font-bold mb-1">Optimización de Recursos</h4>
+                        <p class="text-sm text-gray-600">Guía la zonificación, infraestructuras y espacios verdes con base en evidencia.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">🤝</div>
+                        <h4 class="font-bold mb-1">Mayor Transparencia</h4>
+                        <p class="text-sm text-gray-600">Facilita la participación social en el planeamiento a través de visualizaciones claras.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl mb-3">🌍</div>
+                        <h4 class="font-bold mb-1">Resiliencia Climática</h4>
+                        <p class="text-sm text-gray-600">Identifica zonas críticas ante olas de calor, inundaciones o contaminación.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>Smart Planning Assistant - Un proyecto para NASA Space Apps Challenge 2025.</p>
+            <p class="text-sm text-gray-400 mt-2">Desarrollado para el desafío "Data Pathways to Healthy Cities and Human Settlements".</p>
+        </div>
+    </footer>
 
     <script>
-        document.getElementById('peticionForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        document.addEventListener('DOMContentLoaded', function() {
             
-            const form = e.target;
-            const loading = document.querySelector('.loading');
-            const resultDiv = document.getElementById('result');
-            
-            loading.style.display = 'block';
-            resultDiv.style.display = 'none';
-            
-            try {
-                const response = await fetch('/submit_petition', { // Ruta actualizada
-                    method: 'POST',
-                    body: new FormData(form)
+            const aiDetailsContent = {
+                1: { title: 'Aprendizaje Automático Predictivo', text: 'Utiliza series temporales de datos de la misión RADARSAT Constellation e imágenes del catálogo INPE para analizar tendencias de crecimiento urbano y predecir patrones futuros de expansión.'},
+                2: { title: 'Optimización Multi-objetivo', text: 'Emplea algoritmos avanzados para balancear automáticamente objetivos en conflicto, como el desarrollo económico, la sostenibilidad ambiental y la equidad social, encontrando soluciones óptimas.'},
+                3: { title: 'Detección de Anomalías Ambientales', text: 'Identifica de forma temprana problemas ambientales emergentes, como islas de calor o contaminación, mediante el análisis de patrones anómalos en los datos satelitales.'},
+                4: { title: 'Generación de Escenarios', text: 'Crea automáticamente múltiples escenarios de desarrollo urbano, evaluando sus impactos potenciales utilizando datos de fuentes como el World Resources Institute para informar la toma de decisiones.'}
+            };
+            const aiCards = document.querySelectorAll('.ai-card');
+            const aiDetailsContainer = document.getElementById('ai-details');
+            aiCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const detailId = card.getAttribute('data-id');
+                    const content = aiDetailsContent[detailId];
+                    aiDetailsContainer.style.opacity = 0;
+                    setTimeout(() => {
+                        aiDetailsContainer.innerHTML = `<div class="text-left"><h3 class="font-bold text-xl text-blue-800 mb-2">${content.title}</h3><p class="text-gray-700">${content.text}</p></div>`;
+                        aiDetailsContainer.style.opacity = 1;
+                    }, 300);
                 });
+            });
+
+            const workflowDetailsContent = {
+                1: { title: 'Captura Satelital', details: '<strong>Fuente de Datos:</strong> Landsat, MODIS (NASA)<br><strong>Herramienta/Algoritmo:</strong> GIS, ML de segmentación<br><strong>Salida/Beneficio:</strong> Mapa de expansión urbana, calor, zonas verdes'},
+                2: { title: 'Modelado Digital Twin', details: '<strong>Fuente de Datos:</strong> SEDAC, censo, catastro<br><strong>Herramienta/Algoritmo:</strong> CityEngine, CesiumJS<br><strong>Salida/Beneficio:</strong> Gemelo 3D interactivo con capas sociales/urbanas'},
+                3: { title: 'Simulación con IA', details: '<strong>Fuente de Datos:</strong> Datos históricos + Sensores<br><strong>Herramienta/Algoritmo:</strong> Modelos predictivos<br><strong>Salida/Beneficio:</strong> Escenarios de crecimiento y localización de carencias'},
+                4: { title: 'Visualización y Participación', details: '<strong>Herramienta/Algoritmo:</strong> Dashboard + Realidad Aumentada<br><strong>Salida/Beneficio:</strong> Exploración, análisis y participación ciudadana'},
+                5: { title: 'Iteración y Feedback', details: '<strong>Fuente de Datos:</strong> Feedback de usuarios y sensores<br><strong>Herramienta/Algoritmo:</strong> Ajuste de modelos<br><strong>Salida/Beneficio:</strong> Mejora continua y calibración social-tecnológica'}
+            };
+            const workflowSteps = document.querySelectorAll('.workflow-step');
+            const workflowDetailsContainer = document.getElementById('workflow-details');
+            function updateWorkflowStep(stepElement) {
+                workflowSteps.forEach(s => s.classList.remove('step-active'));
+                stepElement.classList.add('step-active');
+                const stepId = stepElement.getAttribute('data-step');
+                const content = workflowDetailsContent[stepId];
+                workflowDetailsContainer.innerHTML = `<h3 class="font-bold text-xl text-blue-800 mb-3">${content.title}</h3><p class="text-gray-700 leading-relaxed">${content.details}</p>`;
+            }
+            workflowSteps.forEach(step => {
+                step.addEventListener('click', () => updateWorkflowStep(step));
+            });
+            updateWorkflowStep(document.querySelector('.workflow-step[data-step="1"]'));
+            
+            const scenarioData = {
+                base: [60, 45, 30, 70],
+                sostenible: [85, 75, 80, 40],
+                compacto: [70, 60, 90, 50]
+            };
+            const ctx = document.getElementById('scenarioChart').getContext('2d');
+            const scenarioChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Calidad del Aire', 'Espacios Verdes', 'Acceso a Servicios', 'Congestión Vehicular'],
+                    datasets: [{
+                        label: 'Puntuación del Indicador',
+                        data: scenarioData.base,
+                        backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(16, 185, 129, 0.6)', 'rgba(139, 92, 246, 0.6)', 'rgba(239, 68, 68, 0.6)'],
+                        borderColor: ['rgba(59, 130, 246, 1)', 'rgba(16, 185, 129, 1)', 'rgba(139, 92, 246, 1)', 'rgba(239, 68, 68, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: 'Puntuación (0-100)' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+            document.getElementById('scenario-selector').addEventListener('change', (event) => {
+                const selectedScenario = event.target.value;
+                scenarioChart.data.datasets[0].data = scenarioData[selectedScenario];
+                scenarioChart.update();
+            });
+
+            // --- SCRIPT DEL FORMULARIO ---
+            document.getElementById('peticionForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const loading = document.getElementById('loading');
+                const resultDiv = document.getElementById('result');
                 
-                const data = await response.json();
+                loading.style.display = 'block';
+                resultDiv.style.display = 'none';
                 
-                if (data.success) {
-                    resultDiv.innerHTML = `<strong>Petición recibida con éxito:</strong><br><br>${data.message.replace(/\n/g, '<br>')}`;
-                    resultDiv.style.display = 'block';
-                    form.reset(); // Limpiar el formulario
-                } else {
-                    resultDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                try {
+                    const response = await fetch('/submit_petition', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    });
+                    const data = await response.json();
+                    
+                    resultDiv.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+                    if (data.success) {
+                        resultDiv.innerHTML = `<strong>Petición recibida y analizada:</strong><br><br>${data.message.replace(/\n/g, '<br>')}`;
+                        resultDiv.classList.add('bg-green-100', 'text-green-800');
+                        form.reset();
+                    } else {
+                        resultDiv.innerHTML = `<strong>Error:</strong> ${data.error}`;
+                        resultDiv.classList.add('bg-red-100', 'text-red-800');
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = '<strong>Ocurrió un error de conexión.</strong> Por favor, intenta de nuevo.';
+                    resultDiv.classList.add('bg-red-100', 'text-red-800');
+                } finally {
+                    loading.style.display = 'none';
                     resultDiv.style.display = 'block';
                 }
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="error">Ocurrió un error de conexión. Por favor, intenta de nuevo.</div>`;
-                resultDiv.style.display = 'block';
-            } finally {
-                loading.style.display = 'none';
-            }
+            });
         });
     </script>
 </body>
